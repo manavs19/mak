@@ -92,7 +92,7 @@ def openFile(fileName):
 	p = subprocess.Popen(["xdg-open", fileName])
 
 def getDirectoryFromAddressBar():
-	time.sleep(0.01)
+	time.sleep(0.1)
 	subprocess.call(["xdotool", "key", "ctrl+l"])
 	subprocess.call(["xdotool", "key", "ctrl+c"])
 	xsel = subprocess.check_output(["xsel"]) #get text from clipboard
