@@ -19,14 +19,10 @@ def init():
 	global use
 	for line in wm.splitlines():
 		line = line.split()
-		# print type(line)
-		# print line
 		if line[1]!="-1" and line[3]=="Home":
 			use = line
 
 	print use
-
-# subprocess.call(["wmctrl",  "-i",  "-c", use[0]])
 
 def getFolderNames():
 	folderNames = [f for f in os.listdir('.') if not os.path.isfile(f)]
@@ -75,13 +71,11 @@ def openFolder(folderName):
 	os.chdir(folderName)
 
 def getDirectoryFromAddressBar():
-	time.sleep(1)
+	time.sleep(0.01)
 	subprocess.call(["xdotool", "key", "ctrl+l"])
-	# time.sleep(1)
 	subprocess.call(["xdotool", "key", "ctrl+c"])
 	xsel = subprocess.check_output(["xsel"]) #get text from clipboard
 	subprocess.call(["xdotool", "key", "Escape"])
-	# time.sleep(1)
 	print "address: ",xsel
 	return xsel
 	
@@ -129,8 +123,6 @@ if __name__ == "__main__":
 			#     print("Could not request results from Google Speech Recognition service; {0}".format(e))
 
 			print "mak>", 
-			# s = raw_input().strip().split()
-			# print s[0]
 			s = s.split()
 			if s[0]=="ls":
 				ls()
