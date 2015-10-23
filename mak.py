@@ -112,6 +112,63 @@ def genericCommand(command):
 
 	os.chdir(getDirectoryFromAddressBar())
 
+def create(folderName):
+	if checkOpen()==0:
+		print "window not open"
+		return #window not open
+	folderNames = getFolderNames()
+	#check case also
+	flag=0
+	for f in folderNames:
+		#Get case sensitive name for folder
+		if folderName.lower() == f.lower():
+			flag=1
+			break
+
+	if flag==1:#folder already present
+		return
+
+	p = subprocess.Popen(["mkdir", folderName])
+
+def delete(folderName):
+	if checkOpen()==0:
+		print "window not open"
+		return #window not open
+	folderNames = getFolderNames()
+	#check case also
+	flag=0
+	for f in folderNames:
+		#Get case sensitive name for folder
+		if folderName.lower() == f.lower():
+			folderName = f
+			flag=1
+			break
+
+	if flag==0:#folder not found
+		return
+
+	p = subprocess.Popen(["rm", "-rf", folderName])
+
+def rename(oldName, newName):
+	if checkOpen()==0:
+		print "window not open"
+		return #window not open
+	folderNames = getFolderNames()
+	#check case also
+	flag=0
+	for f in folderNames:
+		#Get case sensitive name for folder
+		if oldName.lower() == f.lower():
+			oldName = f
+			flag=1
+			break
+
+	if flag==0:#folder not found
+		return
+
+	p = subprocess.Popen(["mv", oldName, newName])	
+
+
 def exit():
 	if checkOpen():
 		subprocess.call(["wmctrl",  "-i",  "-c", use[0]])
@@ -145,16 +202,24 @@ if __name__ == "__main__":
 
 			print "mak>", 
 			s = s.split(" ", 1)#split once at space
+			print s
 			if s[0]=="ls":
 				ls()
 			elif s[0]=="open":
 				openFolder(s[1])
+			elif s[0] in genericCommands:
+				genericCommand(s[0])
+			elif s[0]=="create":
+				create(s[1])
+			elif s[0]=="delete":
+				delete(s[1])
+			elif s[0]=="rename":
+				temp = s[1].split()
+				rename(temp[0], temp[1])
 			elif s[0]=="file":
 				openFile(s[1])
 			elif s[0]=="init":
 				init()
-			elif s[0] in genericCommands:
-				genericCommand(s[0])
 			elif s[0]=="exit":
 				exit()
 				break
