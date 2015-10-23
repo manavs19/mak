@@ -70,6 +70,27 @@ def openFolder(folderName):
 
 	os.chdir(folderName)
 
+def openFile(fileName):
+	""" Opens file if present in current directory """
+	if checkOpen()==0:
+		print "window not open"
+		return #window not open
+	fileNames = getFileNames()
+	#check case also
+	flag=0
+	for f in fileNames:
+		#Get case sensitive name for folder
+		temp = f.split(".")[0]
+		if fileName.lower() == temp.lower():
+			fileName = f
+			flag=1
+			break
+
+	if flag==0:#file not found
+		return
+
+	p = subprocess.Popen(["xdg-open", fileName])
+
 def getDirectoryFromAddressBar():
 	time.sleep(0.01)
 	subprocess.call(["xdotool", "key", "ctrl+l"])
@@ -123,11 +144,13 @@ if __name__ == "__main__":
 			#     print("Could not request results from Google Speech Recognition service; {0}".format(e))
 
 			print "mak>", 
-			s = s.split()
+			s = s.split(" ", 1)#split once at space
 			if s[0]=="ls":
 				ls()
 			elif s[0]=="open":
 				openFolder(s[1])
+			elif s[0]=="file":
+				openFile(s[1])
 			elif s[0]=="init":
 				init()
 			elif s[0] in genericCommands:
