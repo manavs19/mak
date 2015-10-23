@@ -73,34 +73,16 @@ def openFolder(folderName):
 	subprocess.call(["xdotool", "type", str(folderName)+"\n"])
 
 	os.chdir(folderName)
-	# print getDirectoryFromAddressBar()
-
-
-def back():
-	if checkOpen()==0:
-		print "window not open"
-		return #window not open
-
-	subprocess.call(["xdotool", "windowactivate", str(use[0])])
-	time.sleep(1)
-	print subprocess.call(["xdotool", "key", "--window", str(use[0]), "alt+Left"])
-
-	# os.chdir(getDirectoryFromAddressBar())
-
-
 
 def getDirectoryFromAddressBar():
 	time.sleep(1)
-	subprocess.call(["xdotool", "windowactivate", str(use[0])])
-	time.sleep(1)
-	subprocess.call(["xdotool", "key", "--window", str(use[0]),  "Ctrl+L"])
-	time.sleep(1)
-	subprocess.call(["xdotool", "key", "--window", str(use[0]),  "Ctrl+C"])
-	time.sleep(1)
-	# subprocess.call(["xdotool", "windowactivate", str(use[0])])
+	subprocess.call(["xdotool", "key", "ctrl+l"])
 	# time.sleep(1)
+	subprocess.call(["xdotool", "key", "ctrl+c"])
 	xsel = subprocess.check_output(["xsel"]) #get text from clipboard
-	print "dsfds",xsel
+	subprocess.call(["xdotool", "key", "Escape"])
+	# time.sleep(1)
+	print "address: ",xsel
 	return xsel
 	
 
@@ -109,23 +91,11 @@ def genericCommand(command):
 	if checkOpen()==0:
 		print "window not open"
 		return #window not open
-	print command
+	
 	subprocess.call(["xdotool", "windowactivate", str(use[0])])
-	time.sleep(1)
-	print subprocess.call(["xdotool", "key", "--window", str(use[0]),  genericCommands[command]])
+	subprocess.call(["xdotool", "key", genericCommands[command]])
 
-	# os.chdir(getDirectoryFromAddressBar())
-
-
-# pid = p.pid
-# print pid
-
-# os.system("xdotool windowkill `xdotool getactivewindow`")
-# os.system("xkill -id `xprop -root _NET_ACTIVE_WINDOW | cut -d\# -f2`")
-# p.kill()
-# p.terminate()
-# os.kill(p.pid, signal.SIGINT)
-# p.kill()
+	os.chdir(getDirectoryFromAddressBar())
 
 def exit():
 	if checkOpen():
@@ -166,15 +136,28 @@ if __name__ == "__main__":
 				ls()
 			elif s[0]=="open":
 				openFolder(s[1])
-			elif s[0]=="back":
-				back()
 			elif s[0]=="init":
 				init()
-			# elif s[0] in genericCommands:
-			# 	genericCommand(s[0])
+			elif s[0] in genericCommands:
+				genericCommand(s[0])
 			elif s[0]=="exit":
 				exit()
 				break
 
 		except:#catch any error in while
 			continue
+
+
+
+
+""" 
+# pid = p.pid
+# print pid
+
+# os.system("xdotool windowkill `xdotool getactivewindow`")
+# os.system("xkill -id `xprop -root _NET_ACTIVE_WINDOW | cut -d\# -f2`")
+# p.kill()
+# p.terminate()
+# os.kill(p.pid, signal.SIGINT)
+# p.kill()
+"""
