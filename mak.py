@@ -4,9 +4,25 @@ import subprocess
 import time
 import signal
 import speech_recognition as sr
+import traceback
+
+# def tts(text):
+# 	subprocess.call(["espeak", text])
+
+def notify(text):
+	#expire in 2 seconds, icon of sad face, title is Error!, text is text
+	subprocess.call(["notify-send", "-t", "2000", "-i", "face-sad", "Error!", text])
+	# pass
 
 use  = []
-def init():
+def start():
+	#check if a file explorer is already open
+	global use
+	if use and checkOpen()==1:
+		notify("File explorer already open!")
+		print "File explorer already open!"
+		return
+
 	home = expanduser("~")
 	os.chdir(home)
 
@@ -16,7 +32,6 @@ def init():
 
 	time.sleep(1)
 	wm = subprocess.check_output(["wmctrl", "-l"])
-	global use
 	for line in wm.splitlines():
 		line = line.split()
 		if line[1]!="-1" and line[3]=="Home":
@@ -48,8 +63,20 @@ def checkOpen():
 	return 0
 
 def openFolder(folderName):
+	subprocess.call(["xdotool", "windowactivate", str(use[0])])
+	subprocess.call(["xdotool", "key", "--window", str(use[0]),  "Ctrl+L"])#useless statement
+	subprocess.call(["xdotool", "type", str(folderName)+"\n"])
+
+	os.chdir(folderName)
+
+def openFile(fileName):
+	p = subprocess.Popen(["xdg-open", fileName])
+
+
+def open(folderName):
 	if checkOpen()==0:
-		print "window not open"
+		notify("File explorer not open. Say \"start\" to open a new file explorer or \"exit\" to end this session.")
+		print "File explorer not open"
 		return #window not open
 	folderNames = getFolderNames()
 	#check case also
@@ -61,35 +88,26 @@ def openFolder(folderName):
 			flag=1
 			break
 
-	if flag==0:#folder not found
-		return
+	if flag==1:#found folder
+		openFolder(folderName)
+	else:#folder not found, search for file
+		fileNames = getFileNames()
+		#check case also
+		flag2=0
+		fileName = folderName
+		for f in fileNames:
+			#Get case sensitive name for folder
+			temp = f.split(".")[0]
+			if fileName.lower() == temp.lower():
+				fileName = f
+				flag2=1
+				break
 
-	subprocess.call(["xdotool", "windowactivate", str(use[0])])
-	subprocess.call(["xdotool", "key", "--window", str(use[0]),  "Ctrl+L"])
-	subprocess.call(["xdotool", "type", str(folderName)+"\n"])
+		if flag2==1:
+			openFile(fileName)
+		else:#file not found
+			notify("Could not find file/folder named: " + folderName)
 
-	os.chdir(folderName)
-
-def openFile(fileName):
-	""" Opens file if present in current directory """
-	if checkOpen()==0:
-		print "window not open"
-		return #window not open
-	fileNames = getFileNames()
-	#check case also
-	flag=0
-	for f in fileNames:
-		#Get case sensitive name for folder
-		temp = f.split(".")[0]
-		if fileName.lower() == temp.lower():
-			fileName = f
-			flag=1
-			break
-
-	if flag==0:#file not found
-		return
-
-	p = subprocess.Popen(["xdg-open", fileName])
 
 def getDirectoryFromAddressBar():
 	time.sleep(0.1)
@@ -100,11 +118,12 @@ def getDirectoryFromAddressBar():
 	print "address: ",xsel
 	return xsel
 	
-
-genericCommands = {"up":"alt+Up", "home":"alt+Home", "back":"alt+Left", "forward":"alt+Right"}
+#removed up since recognition is not good
+genericCommands = {"home":"alt+Home", "back":"alt+Up", "last":"alt+Left", "next":"alt+Right"}
 def genericCommand(command):
 	if checkOpen()==0:
-		print "window not open"
+		notify("File explorer not open. Say \"start\" to open a new file explorer or \"exit\" to end this session.")
+		print "File explorer not open"
 		return #window not open
 	
 	subprocess.call(["xdotool", "windowactivate", str(use[0])])
@@ -114,7 +133,8 @@ def genericCommand(command):
 
 def create(folderName):
 	if checkOpen()==0:
-		print "window not open"
+		notify("File explorer not open. Say \"start\" to open a new file explorer or \"exit\" to end this session.")
+		print "File explorer not open"
 		return #window not open
 	folderNames = getFolderNames()
 	#check case also
@@ -126,13 +146,15 @@ def create(folderName):
 			break
 
 	if flag==1:#folder already present
+		notify("Folder named: " + folderName + " is already present in this directory")
 		return
 
 	p = subprocess.Popen(["mkdir", folderName])
 
 def delete(folderName):
 	if checkOpen()==0:
-		print "window not open"
+		notify("File explorer not open. Say \"start\" to open a new file explorer or \"exit\" to end this session.")
+		print "File explorer not open"
 		return #window not open
 	folderNames = getFolderNames()
 	#check case also
@@ -145,13 +167,15 @@ def delete(folderName):
 			break
 
 	if flag==0:#folder not found
+		notify("Folder named: " + folderName + " is not present in this directory")
 		return
 
 	p = subprocess.Popen(["rm", "-rf", folderName])
 
 def rename(oldName, newName):
 	if checkOpen()==0:
-		print "window not open"
+		notify("File explorer not open. Say \"start\" to open a new file explorer or \"exit\" to end this session.")
+		print "File explorer not open"
 		return #window not open
 	folderNames = getFolderNames()
 	#check case also
@@ -164,6 +188,7 @@ def rename(oldName, newName):
 			break
 
 	if flag==0:#folder not found
+		notify("Folder named: " + oldName + " is not present in this directory")
 		return
 
 	p = subprocess.Popen(["mv", oldName, newName])	
@@ -175,7 +200,7 @@ def exit():
 
 
 if __name__ == "__main__":
-	init()
+	start()
 	while 1:
 		try:
 			# obtain audio from the microphone
@@ -194,6 +219,8 @@ if __name__ == "__main__":
 				print("Google Speech Recognition thinks you said " + s)
 			except:
 				#Some error in speech recognition
+				notify("Sorry! I could not recognize that.")
+				traceback.print_exc()
 				continue
 			# except sr.UnknownValueError:
 			#     print("Google Speech Recognition could not understand audio")
@@ -205,8 +232,8 @@ if __name__ == "__main__":
 			print s
 			if s[0]=="ls":
 				ls()
-			elif s[0]=="open":
-				openFolder(s[1])
+			elif s[0]=="open":#open file/folder
+				open(s[1])
 			elif s[0] in genericCommands:
 				genericCommand(s[0])
 			elif s[0]=="create":
@@ -216,15 +243,18 @@ if __name__ == "__main__":
 			elif s[0]=="rename":
 				temp = s[1].split()
 				rename(temp[0], temp[1])
-			elif s[0]=="file":
-				openFile(s[1])
-			elif s[0]=="init":
-				init()
+			elif s[0]=="start":
+				start()
 			elif s[0]=="exit":
 				exit()
 				break
+			else:
+				temp = "".join(s)
+				notify(temp + " is not a valid command.")
 
 		except:#catch any error in while
+			notify("Sorry! I could not recognize that.")
+			traceback.print_exc()
 			continue
 
 
