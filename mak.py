@@ -47,7 +47,7 @@ def getFileNames():
 	fileNames = [f for f in os.listdir('.') if os.path.isfile(f)]
 	return fileNames	
 
-def ls():
+def list():
 	# files = [f for f in os.listdir('.') if os.path.isfile(f)]
 	# for f in files:
 	# 	print f
@@ -200,63 +200,69 @@ def exit():
 
 
 if __name__ == "__main__":
-	start()
-	while 1:
-		try:
-			# obtain audio from the microphone
-			r = sr.Recognizer()
-			with sr.Microphone() as source:
-				print("Say something!")
-				audio = r.listen(source)
+	try:
+		start()
+		# obtain audio from the microphone
+		r = sr.Recognizer()
+		with sr.Microphone() as source:
+			r.adjust_for_ambient_noise(source)
+			
+			while 1:
+				try:
+					print("Say something!")
+					audio = r.listen(source)
+				
+					s = ""
+					try:
+						# for testing purposes, we're just using the default API key
+						# to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
+						# instead of `r.recognize_google(audio)`
+						s = r.recognize_google(audio)
+						s = s.lower()
+						print("Google Speech Recognition thinks you said " + s)
+					except:
+						#Some error in speech recognition
+						notify("Sorry! I could not recognize that.")
+						traceback.print_exc()
+						continue
+					# except sr.UnknownValueError:
+					#     print("Google Speech Recognition could not understand audio")
+					# except sr.RequestError as e:
+					#     print("Could not request results from Google Speech Recognition service; {0}".format(e))
 
-			s = ""
-			try:
-				# for testing purposes, we're just using the default API key
-				# to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
-				# instead of `r.recognize_google(audio)`
-				s = r.recognize_google(audio)
-				s = s.lower()
-				print("Google Speech Recognition thinks you said " + s)
-			except:
-				#Some error in speech recognition
-				notify("Sorry! I could not recognize that.")
-				traceback.print_exc()
-				continue
-			# except sr.UnknownValueError:
-			#     print("Google Speech Recognition could not understand audio")
-			# except sr.RequestError as e:
-			#     print("Could not request results from Google Speech Recognition service; {0}".format(e))
+					print "mak>", 
+					s = s.split(" ", 1)#split once at space
+					print s
+					if s[0]=="list":
+						list()
+					elif s[0]=="open":#open file/folder
+						open(s[1])
+					elif s[0] in genericCommands:
+						genericCommand(s[0])
+					elif s[0]=="create":
+						create(s[1])
+					elif s[0]=="delete":
+						delete(s[1])
+					elif s[0]=="rename":
+						temp = s[1].split()
+						rename(temp[0], temp[1])
+					elif s[0]=="start":
+						start()
+					elif s[0]=="exit":
+						exit()
+						break
+					else:
+						temp = "".join(s)
+						notify(temp + " is not a valid command.")
 
-			print "mak>", 
-			s = s.split(" ", 1)#split once at space
-			print s
-			if s[0]=="ls":
-				ls()
-			elif s[0]=="open":#open file/folder
-				open(s[1])
-			elif s[0] in genericCommands:
-				genericCommand(s[0])
-			elif s[0]=="create":
-				create(s[1])
-			elif s[0]=="delete":
-				delete(s[1])
-			elif s[0]=="rename":
-				temp = s[1].split()
-				rename(temp[0], temp[1])
-			elif s[0]=="start":
-				start()
-			elif s[0]=="exit":
-				exit()
-				break
-			else:
-				temp = "".join(s)
-				notify(temp + " is not a valid command.")
+				except:#catch any error in while
+					notify("Sorry! I could not recognize that.")
+					traceback.print_exc()
+					continue
 
-		except:#catch any error in while
-			notify("Sorry! I could not recognize that.")
-			traceback.print_exc()
-			continue
-
+	except:
+		notify("Sorry! Could not read the microphone.")
+		traceback.print_exc()
 
 
 
