@@ -5,6 +5,8 @@ import time
 import signal
 import speech_recognition as sr
 import traceback
+import fnmatch
+import re
 
 # def tts(text):
 # 	subprocess.call(["espeak", text])
@@ -72,18 +74,24 @@ def openFolder(folderName):
 def openFile(fileName):
 	p = subprocess.Popen(["xdg-open", fileName])
 
+def preprocess(folderName):
+	pattern = re.compile(re.escape(' dot '), re.IGNORECASE)
+	return pattern.sub('.', folderName)
 
 def open(folderName):
 	if checkOpen()==0:
 		notify("File explorer not open. Say \"start\" to open a new file explorer or \"exit\" to end this session.")
 		print "File explorer not open"
 		return #window not open
+	folderName = preprocess(folderName)#DOT
 	folderNames = getFolderNames()
 	#check case also
 	flag=0
+	rule = re.compile(fnmatch.translate("*"+folderName+"*"), re.IGNORECASE)
 	for f in folderNames:
 		#Get case sensitive name for folder
-		if folderName.lower() == f.lower():
+		# if folderName.lower() == f.lower():
+		if rule.match(f):
 			folderName = f
 			flag=1
 			break
@@ -95,13 +103,25 @@ def open(folderName):
 		#check case also
 		flag2=0
 		fileName = folderName
+		rule = re.compile(fnmatch.translate("*"+fileName+"*"), re.IGNORECASE)
+		#first match all files with extension
 		for f in fileNames:
-			#Get case sensitive name for folder
-			temp = f.split(".")[0]
-			if fileName.lower() == temp.lower():
+			#Get case sensitive name for file
+			# if fileName.lower() == temp.lower():
+			if rule.match(f):#match with extension
 				fileName = f
 				flag2=1
 				break
+
+		if flag2==0:#not found.try without extension
+			for f in fileNames:
+				#Get case sensitive name for file
+				temp = f.split(".")[0]
+				# if fileName.lower() == temp.lower():
+				if rule.match(temp):#match with extension
+					fileName = f
+					flag2=1
+					break
 
 		if flag2==1:
 			openFile(fileName)
