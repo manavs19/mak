@@ -193,6 +193,14 @@ def rename(oldName, newName):
 
 	p = subprocess.Popen(["mv", oldName, newName])	
 
+def show():
+	""" Show the file explorer """
+	if checkOpen()==0:
+		notify("File explorer not open. Say \"start\" to open a new file explorer or \"exit\" to end this session.")
+		print "File explorer not open"
+		return #window not open
+	subprocess.call(["xdotool", "windowactivate", str(use[0])])	
+
 
 def exit():
 	if checkOpen():
@@ -217,7 +225,7 @@ if __name__ == "__main__":
 						# for testing purposes, we're just using the default API key
 						# to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
 						# instead of `r.recognize_google(audio)`
-						s = r.recognize_google(audio)
+						s = r.recognize_google(audio, language = "en-IN")
 						s = s.lower()
 						print("Google Speech Recognition thinks you said " + s)
 					except:
@@ -237,6 +245,8 @@ if __name__ == "__main__":
 						list()
 					elif s[0]=="open":#open file/folder
 						open(s[1])
+					elif s[0]=="show":
+						show()
 					elif s[0] in genericCommands:
 						genericCommand(s[0])
 					elif s[0]=="create":
